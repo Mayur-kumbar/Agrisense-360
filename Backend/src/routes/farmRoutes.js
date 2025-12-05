@@ -1,10 +1,10 @@
 import { Router } from 'express'
-import { authMiddleware } from '../middleware/authMiddleware.js'
+import { requireAuth } from '../middleware/authMiddleware.js'
 import { createFarm, getMyFarms } from '../controllers/farmController.js'
 
 const router = Router()
 
-router.post('/', authMiddleware, createFarm)
-router.get('/', authMiddleware, getMyFarms)
+router.post('/createFarm', requireAuth, createFarm)
+router.get('/getFarms', requireAuth, getMyFarms)
 
 export default router

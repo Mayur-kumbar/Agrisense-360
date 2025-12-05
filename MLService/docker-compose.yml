@@ -1,0 +1,57 @@
+version: "3.8"
+services:
+  ml:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      # override or add any runtime env vars here if needed
+      - N8N_WEBHOOK_URL=${N8N_WEBHOOK_URL}
+      - N8N_SERVICE_TOKEN=${N8N_SERVICE_TOKEN}
+      - N8N_MAX_RETRIES=${N8N_MAX_RETRIES}
+      - N8N_RETRY_BASE_SECONDS=${N8N_RETRY_BASE_SECONDS}
+    volumes:
+      - ./ml_service/app:/app/app   # dev convenience, remove for production
+    ports:
+      - "9000:8001" # host:container (adjust host port as you like)
+    depends_on:
+      - n8n
+      - mongo
+    restart: unless-stopped
+
+  n8n:
+    image: n8nio/n8n:latest
+    ports:
+      - "5678:5678"
+    environment:
+      - GENERIC_TIMEZONE=UTC
+    volumes:
+      - n8n_data:/home/node/.n8n
+    restart: unless-stopped
+
+  backend:
+    image: node:18
+    working_dir: /app
+    volumes:
+      - ./backend:/app
+    command: sh -c "npm install && npm run dev"
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo:6
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  n8n_data:
+  mongo_data:

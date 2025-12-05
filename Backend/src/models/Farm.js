@@ -1,16 +1,17 @@
 import mongoose from 'mongoose'
 
-const FarmSchema = new mongoose.Schema({
-  owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+const farmSchema = new mongoose.Schema({
+  owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   name: String,
-  polygon: Object, // GeoJSON
+  polygon: { type: [[Number]] },
   crop: String,
   center: {
-    type: [Number], // [lat, lng]
-    default: [0, 0]
+    lat: { type: Number, required: true },
+    lng: { type: Number, required: true }
   }
-}, { timestamps: true })
+});
 
-FarmSchema.index({ polygon: '2dsphere' })
 
-export default mongoose.model('Farm', FarmSchema)
+farmSchema.index({ polygon: '2dsphere' })
+
+export default mongoose.model('Farm', farmSchema)

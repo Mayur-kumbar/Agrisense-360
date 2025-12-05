@@ -1,18 +1,27 @@
-import jwt from 'jsonwebtoken'
+// src/middleware/auth.js
+import jwt from "jsonwebtoken";
 
-export const authMiddleware = (req, res, next) => {
-  const header = req.headers.authorization
+export function requireAuth(req, res, next) {
+  const authHeader = req.headers.authorization;
+  const serviceToken = req.headers["x-service-token"] || req.headers["x-service-token".toLowerCase()];
 
-  if (!header) return res.status(401).json({ message: 'No token provided' })
+  // service token (trusted automation)
+  if (serviceToken && process.env.SERVICE_TOKEN && serviceToken === process.env.SERVICE_TOKEN) {
+    req.user = { service: true };
+    return next();
+  }
 
-  const token = header.split(' ')[1]
+  // JWT flow
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ message: "Missing auth" });
+  }
 
+  const token = authHeader.split(" ")[1];
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET)
-    req.userId = decoded.id
-    req.role = decoded.role
-    next()
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = payload; // payload can contain userId, roles etc.
+    return next();
   } catch (err) {
-    res.status(401).json({ message: 'Invalid token' })
+    return res.status(401).json({ message: "Invalid token" });
   }
 }

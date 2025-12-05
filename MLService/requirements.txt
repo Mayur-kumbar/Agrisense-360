@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+rasterio
+numpy
+pillow
+shapely
+fiona
+geopandas
+boto3
+pydantic
+python-multipart

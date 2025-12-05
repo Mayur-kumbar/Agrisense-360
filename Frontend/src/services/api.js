@@ -1,15 +1,16 @@
-import axios from 'axios'
-
-const API_URL = import.meta.env.VITE_API_URL
+// src/services/api.js
+import axios from "axios";
 
 const api = axios.create({
-  baseURL: API_URL,
-  timeout: 10000
-})
+  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:4000/api/",
+  timeout: 15000,
+});
 
-export function setAuthToken(token) {
-  if (token) api.defaults.headers.common['Authorization'] = `Bearer ${token}`
-  else delete api.defaults.headers.common['Authorization']
-}
+// attach token automatically if present
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("as_token");
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+}, (err) => Promise.reject(err));
 
-export default api
+export default api;
